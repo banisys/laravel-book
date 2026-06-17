@@ -1,0 +1,18 @@
+curl https://api.gapgpt.app/v1/responses   -H "Content-Type: application/json"   -H "Authorization: Bearer sk-hydkvTsE5XbZglmwjbcXcIFyacCJKoVb3JodikVVsOlNKmgF"   -d '{
+    "model": "gapgpt-qwen-3.5",
+    "input": [{
+      "role": "user",
+      "content": [
+        {
+          "type": "input_image",
+          "image_url": {
+            "url": "https://www.itbazar.com/mag/wp-content/uploads/2026/06/22222.png"
+          }
+        },
+        {
+          "type": "input_text",
+          "text": "این تصویر را توضیح بده"
+        }
+      ]
+    }]
+  }'
