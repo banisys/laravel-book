@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'rag' => [
+        'url' => env('RAG_API_URL'),
+    ],
+    'ollama' => [
+        'url' => env('OLLAMA_URL'),
+    ],
 ];

@@ -11,6 +11,7 @@ class Page extends Model
         'page_number',
         'image_path',
         'content',
+        'is_synced_to_rag'
     ];
 
     public function book()

@@ -1,0 +1,21 @@
+@import '/vendor/filament/filament/resources/css/theme.css';
+
+@source '/var/www/html/resources/views/**/*.blade.php';
+@source '/var/www/html/app/Filament/**/*.php';
+
+@font-face {
+    font-family: "Yekan";
+    src: url("http://localhost/fonts/Yekan.woff2") format("woff2"),
+        url("http://localhost/fonts/Yekan.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+* {
+    font-family: "Yekan", sans-serif !important;
+}
+
+html {
+    direction: rtl;
+}

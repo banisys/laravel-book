@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedInteger('page_number');
             $table->string('image_path');
             $table->longText('content')->nullable();
+            $table->boolean('is_synced_to_rag')->default(false);
             $table->timestamps();
         });
     }

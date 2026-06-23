@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('books', function (Blueprint $table) {
             $table->id();
+            $table->string('rag_book_id')->nullable();
             $table->string('title');
             $table->string('pdf_path');
             $table->timestamps();

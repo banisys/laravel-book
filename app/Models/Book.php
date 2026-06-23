@@ -9,6 +9,7 @@ class Book extends Model
 {
 
     protected $fillable = [
+        'rag_book_id',
         'title',
         'pdf_path',
     ];

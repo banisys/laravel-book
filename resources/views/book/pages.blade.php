@@ -40,7 +40,7 @@
 
 <body class="rtl">
 
-  <div class="container py-4">
+  <div class="container-fluid py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="mb-0">{{ $book->title }}</h1>
@@ -75,11 +75,22 @@
                   <td>
                     <textarea id="content-{{ $page->id }}" rows="10" class="form-control">{{ $page->content }}</textarea>
                   </td>
-
                   <td class="align-middle text-center">
-                    <button class="btn btn-primary process-btn" data-page-id="{{ $page->id }}">
+
+                    <button class="btn btn-outline-primary btn-sm ocr-btn" data-page-id="{{ $page->id }}">
                       دریافت متن
                     </button>
+
+                    @if (!$page->is_synced_to_rag)
+                      <button class="btn btn-outline-success btn-sm rag-add-btn" data-page-id="{{ $page->id }}">
+                        افزودن به RAG
+                      </button>
+                    @else
+                      <button class="btn btn-outline-danger btn-sm rag-delete-btn" data-page-id="{{ $page->id }}">
+                        حذف از RAG
+                      </button>
+                    @endif
+
                   </td>
                 </tr>
               @endforeach
@@ -117,51 +128,7 @@
     </div>
   </div>
 
-  <script>
-    document.querySelectorAll('.process-btn').forEach(button => {
 
-      button.addEventListener('click', async function() {
-
-        const pageId = this.dataset.pageId;
-
-        this.disabled = true;
-
-        const originalText = this.innerText;
-
-        this.innerHTML =
-          '<span class="spinner-border spinner-border-sm mr-1"></span> Processing';
-
-        try {
-
-          const response = await fetch(`/pages/${pageId}/process`, {
-            method: 'POST',
-            headers: {
-              'X-CSRF-TOKEN': '{{ csrf_token() }}',
-              'Accept': 'application/json'
-            }
-          });
-
-          const data = await response.json();
-
-          document.getElementById(`content-${pageId}`).value =
-            data.content;
-
-        } catch (error) {
-
-          alert('Error');
-
-          console.error(error);
-
-        } finally {
-
-          this.disabled = false;
-          this.innerText = originalText;
-        }
-
-      });
-
-    });
-  </script>
 
   <script>
     document.querySelectorAll('.preview-image').forEach(image => {
@@ -173,6 +140,134 @@
 
         document.getElementById('modalContent').value =
           this.dataset.content;
+
+      });
+
+    });
+  </script>
+
+  <script>
+    document.querySelectorAll('.rag-add-btn').forEach(button => {
+
+      button.addEventListener('click', async function() {
+
+        const pageId = this.dataset.pageId;
+
+        this.disabled = true;
+
+        try {
+
+          const response = await fetch(`/pages/${pageId}/rag`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              'Accept': 'application/json'
+            }
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            location.reload();
+          }
+
+        } finally {
+
+          this.disabled = false;
+        }
+
+      });
+
+    });
+  </script>
+
+  <script>
+    document.querySelectorAll('.rag-delete-btn').forEach(button => {
+
+      button.addEventListener('click', async function() {
+
+        const pageId = this.dataset.pageId;
+
+        if (!confirm('آیا مطمئن هستید؟')) {
+          return;
+        }
+
+        this.disabled = true;
+
+        try {
+
+          const response = await fetch(`/pages/${pageId}/rag`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              'Accept': 'application/json'
+            }
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            location.reload();
+          }
+
+        } finally {
+
+          this.disabled = false;
+        }
+
+      });
+
+    });
+  </script>
+
+
+  <script>
+    document.querySelectorAll('.ocr-btn').forEach(button => {
+
+      button.addEventListener('click', async function() {
+
+        const pageId = this.dataset.pageId;
+
+        const originalText = this.innerText;
+
+        this.disabled = true;
+
+        this.innerHTML =
+          '<span class="spinner-border spinner-border-sm"></span> در حال پردازش';
+
+        try {
+
+          const response = await fetch(
+            `/pages/${pageId}/process`, {
+              method: 'POST',
+              headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+              }
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Request failed');
+          }
+
+          const data = await response.json();
+
+          document.getElementById(
+            `content-${pageId}`
+          ).value = data.content ?? '';
+
+        } catch (error) {
+
+          console.error(error);
+
+          alert('خطا در دریافت متن');
+
+        } finally {
+
+          this.disabled = false;
+          this.innerHTML = originalText;
+        }
 
       });
 
