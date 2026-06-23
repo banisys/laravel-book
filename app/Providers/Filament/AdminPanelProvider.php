@@ -2,11 +2,11 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Dashboard as PagesDashboard;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -18,8 +18,6 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\View\PanelsRenderHook;
-
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -30,29 +28,6 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css', 'build/filament')
-            // ->renderHook(
-            //     PanelsRenderHook::HEAD_END,
-            //     fn(): string => '
-            //         <style>
-            //             @font-face {
-            //                 font-family: "Yekan";
-            //                 src: url("/fonts/Yekan.woff2") format("woff2"),
-            //                     url("/fonts/Yekan.woff") format("woff");
-            //                 font-weight: normal;
-            //                 font-style: normal;
-            //                 font-display: swap;
-            //             }
-
-            //             * {
-            //                 font-family: "Yekan", sans-serif !important;
-            //             }
-
-            //             html {
-            //                 direction: rtl;
-            //             }
-            //         </style>
-            //     ',
-            // )
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -60,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
-                Dashboard::class,
+                PagesDashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
@@ -80,6 +55,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->brandName('درس یار هوشمند');
     }
 }

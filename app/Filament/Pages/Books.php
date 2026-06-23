@@ -11,16 +11,21 @@ use Filament\Pages\Page as FilamentPage;
 use Illuminate\Support\Facades\Http;
 use Spatie\PdfToImage\Pdf;
 use Illuminate\Support\Facades\Storage;
+use BackedEnum;
 
-class CreateBook extends FilamentPage implements HasForms
+class Books extends FilamentPage implements HasForms
 {
     use InteractsWithForms;
 
     public ?array $data = [];
 
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
+
     protected static ?string $navigationLabel = 'مدیریت کتاب';
+
     protected static ?string $title = '';
-    protected string $view = 'filament.pages.create-book';
+
+    protected string $view = 'filament.pages.books';
 
     public bool $showSummaryModal = false;
     public ?int $summaryBookId = null;
@@ -31,6 +36,10 @@ class CreateBook extends FilamentPage implements HasForms
 
     public string $bookTitle = '';
     public $pdf = null;
+
+    public bool $openDeleteModal = false;
+    public ?int $bookIdToDelete = null;
+
 
     public function store(): void
     {
