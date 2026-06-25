@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->viteTheme('resources/css/filament/admin/theme.css', 'build/filament')
+            ->viteTheme('resources/css/filament/admin/theme.css', 'build')
             ->login()
             ->colors([
                 'primary' => Color::hex('#00b894'),
