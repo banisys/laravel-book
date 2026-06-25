@@ -25,7 +25,7 @@
 
         <div class="col-span-2">
           <x-filament::button type="submit" icon="heroicon-o-check" icon-position="before" wire:loading.attr="disabled"
-            wire:target="store">
+            wire:target="store" class="text-white font-bold [&_svg]:text-white">
             <span wire:loading.remove wire:target="store">ذخیره</span>
             <span wire:loading wire:target="store">در حال ذخیره...</span>
           </x-filament::button>
@@ -66,47 +66,39 @@
                     color="primary" size="sm">
                     فایل PDF
                   </x-filament::button>
+                  
 
                   <x-filament::button size="sm" color="success" tag="a"
                     href="{{ route('books.pages', ['book' => $book->id]) }}">
                     لیست صفحات
                   </x-filament::button>
-                  
+
 
                   <div x-data="{ openDeleteModal: @entangle('openDeleteModal').live, bookIdToDelete: @entangle('bookIdToDelete') }">
-
-                    {{-- دکمه حذف --}}
                     <x-filament::icon-button icon="heroicon-o-trash" size="sm" tooltip="حذف"
                       class="bg-red-600 hover:bg-red-700 [&_svg]:text-white"
                       x-on:click="bookIdToDelete = {{ $book->id }}; openDeleteModal = true" />
 
-                    {{-- مودال --}}
                     <div x-show="openDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto"
                       style="display: none;">
-                      {{-- پس‌زمینه تاریک --}}
-                      <div class="fixed inset-0 bg-black/50 transition-opacity" x-on:click="openDeleteModal = false">
+
+                      <div class="fixed inset-0 bg-black/20 transition-opacity" x-on:click="openDeleteModal = false">
                       </div>
 
-                      {{-- محتوای مودال --}}
                       <div class="flex min-h-full items-center justify-center p-4">
                         <div class="relative w-full max-w-md rounded-xl bg-white shadow-xl dark:bg-gray-800"
                           x-on:click.outside="openDeleteModal = false">
 
-                          {{-- هدر --}}
                           <div class="border-b border-gray-200 dark:border-gray-700 p-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                               تایید حذف کتاب
                             </h3>
                           </div>
-
-                          {{-- بدنه --}}
                           <div class="p-4">
                             <p class="text-gray-600 dark:text-gray-400">
                               آیا از حذف این کتاب مطمئن هستید؟ این عملیات غیرقابل بازگشت است.
                             </p>
                           </div>
-
-                          {{-- فوتر --}}
                           <div class="border-t border-gray-200 dark:border-gray-700 p-4 flex justify-end gap-x-3">
                             <x-filament::button color="gray" x-on:click="openDeleteModal = false">
                               انصراف
@@ -120,7 +112,6 @@
                         </div>
                       </div>
                     </div>
-
                   </div>
 
                 </div>

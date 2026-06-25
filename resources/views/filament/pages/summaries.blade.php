@@ -1,7 +1,7 @@
 <x-filament-panels::page>
 
   <div class="flex justify-end mb-2">
-    <x-filament::button color="gray" size="sm" icon="heroicon-o-arrow-right" tag="a"
+    <x-filament::button color="gray" size="sm" icon="heroicon-o-arrow-left" icon-position="after" tag="a"
       href="{{ route('books.pages', $book) }}">
       بازگشت
     </x-filament::button>

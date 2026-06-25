@@ -9,7 +9,6 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                // theme.css رو از اینجا حذف کن
             ],
             refresh: [
                 ...refreshPaths,

@@ -192,9 +192,10 @@
         </div>
 
         <div>
-          <x-filament::button wire:click="getSummary">
+          <x-filament::button wire:click="getSummary" color="primary" >
             دریافت خلاصه
           </x-filament::button>
+          
         </div>
       </div>
 

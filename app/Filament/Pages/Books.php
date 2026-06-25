@@ -4,8 +4,6 @@ namespace App\Filament\Pages;
 
 use App\Models\Book;
 use App\Models\Page;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page as FilamentPage;
 use Illuminate\Support\Facades\Http;
@@ -13,9 +11,8 @@ use Spatie\PdfToImage\Pdf;
 use Illuminate\Support\Facades\Storage;
 use BackedEnum;
 
-class Books extends FilamentPage implements HasForms
+class Books extends FilamentPage
 {
-    use InteractsWithForms;
 
     public ?array $data = [];
 
