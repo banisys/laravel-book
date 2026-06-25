@@ -71,11 +71,7 @@
                     href="{{ route('books.pages', ['book' => $book->id]) }}">
                     لیست صفحات
                   </x-filament::button>
-
-                  <x-filament::button size="sm" color="info"
-                    wire:click="openSummaryModal({{ $book->id }}, '{{ $book->title }}')">
-                    خلاصه
-                  </x-filament::button>
+                  
 
                   <div x-data="{ openDeleteModal: @entangle('openDeleteModal').live, bookIdToDelete: @entangle('bookIdToDelete') }">
 
@@ -143,52 +139,5 @@
     </div>
 
   </x-filament::section>
-
-  <x-filament::modal id="summary-modal" width="2xl" heading="خلاصه کتاب">
-    <div class="space-y-4">
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            از صفحه
-          </label>
-          <x-filament::input.wrapper class="mt-1">
-            <x-filament::input type="number" wire:model="fromPage" min="1" />
-          </x-filament::input.wrapper>
-        </div>
-
-        <div>
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            تا صفحه
-          </label>
-          <x-filament::input.wrapper class="mt-1">
-            <x-filament::input type="number" wire:model="toPage" min="1" />
-          </x-filament::input.wrapper>
-        </div>
-      </div>
-
-      <x-filament::button wire:click="getSummary">
-        دریافت خلاصه
-      </x-filament::button>
-
-      <hr class="border-gray-200 dark:border-gray-700">
-
-      <div>
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          پاسخ
-        </label>
-        <textarea wire:model="summaryResult" rows="12"
-          class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 text-sm"></textarea>
-      </div>
-
-    </div>
-
-    <x-slot name="footerActions">
-      <x-filament::button color="gray" wire:click="closeSummaryModal">
-        بستن
-      </x-filament::button>
-    </x-slot>
-
-  </x-filament::modal>
 
 </x-filament-panels::page>

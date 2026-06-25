@@ -18,4 +18,9 @@ class Book extends Model
     {
         return $this->hasMany(Page::class);
     }
+
+    public function summaries()
+    {
+        return $this->hasMany(Summary::class);
+    }
 }

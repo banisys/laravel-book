@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use App\Filament\Pages\Pages;
+use App\Filament\Pages\Summaries;
 
 Route::get('/books', [BookController::class, 'index'])->name('books.index');
 Route::post('/books', [BookController::class, 'store'])->name('books.store');
@@ -20,3 +21,7 @@ Route::post('/books/{book}/summary', [BookController::class, 'summary'])->name('
 
 
 Route::get('/admin/books/{book}/pages', Pages::class)->name('books.pages');
+
+
+
+Route::get('/admin/books/{book}/summaries', Summaries::class)->name('books.summaries');

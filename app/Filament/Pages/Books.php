@@ -30,9 +30,6 @@ class Books extends FilamentPage implements HasForms
     public bool $showSummaryModal = false;
     public ?int $summaryBookId = null;
     public string $summaryBookTitle = '';
-    public int $fromPage = 1;
-    public int $toPage = 1;
-    public string $summaryResult = '';
 
     public string $bookTitle = '';
     public $pdf = null;
@@ -141,26 +138,4 @@ class Books extends FilamentPage implements HasForms
             ->send();
     }
 
-    public function openSummaryModal(int $bookId, string $title): void
-    {
-        $this->summaryBookId = $bookId;
-        $this->summaryBookTitle = $title;
-        $this->fromPage = 1;
-        $this->toPage = 1;
-        $this->summaryResult = '';
-        $this->showSummaryModal = true;
-
-
-        $this->dispatch('open-modal', id: 'summary-modal');
-    }
-
-    public function closeSummaryModal()
-    {
-        $this->dispatch('close-modal', id: 'summary-modal');
-    }
-
-    public function getSummary(): void
-    {
-        // منطق دریافت خلاصه اینجا
-    }
 }
