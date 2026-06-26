@@ -78,7 +78,7 @@
                   <td class="align-middle text-center">
 
                     <button class="btn btn-outline-primary btn-sm ocr-btn" data-page-id="{{ $page->id }}">
-                      دریافت متن
+                      استخراج متن
                     </button>
 
                     @if (!$page->is_synced_to_rag)
@@ -261,7 +261,7 @@
 
           console.error(error);
 
-          alert('خطا در دریافت متن');
+          alert('خطا در استخراج متن');
 
         } finally {
 

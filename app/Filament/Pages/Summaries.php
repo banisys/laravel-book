@@ -4,13 +4,14 @@ namespace App\Filament\Pages;
 
 use App\Models\Book;
 use App\Models\Summary;
-use Filament\Pages\Page;
+use Filament\Pages\Page as FilamentPage;
 
-class Summaries extends Page
+class Summaries extends FilamentPage
 {
     protected static bool $shouldRegisterNavigation = false;
 
     protected string $view = 'filament.pages.summaries';
+    protected static ?string $slug = 'books/{book}/summaries';
 
     public ?Book $book = null;
 

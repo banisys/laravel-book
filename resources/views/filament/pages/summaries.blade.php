@@ -2,7 +2,7 @@
 
   <div class="flex justify-end mb-2">
     <x-filament::button color="gray" size="sm" icon="heroicon-o-arrow-left" icon-position="after" tag="a"
-      href="{{ route('books.pages', $book) }}">
+      href="{{ route('filament.admin.pages.books.{book}.pages', ['book' => $book->id]) }}">
       بازگشت
     </x-filament::button>
   </div>

@@ -3,26 +3,35 @@
 namespace App\Filament\Pages;
 
 use App\Models\Book;
-use Filament\Pages\Page;
+use App\Models\Prompt;
+use Filament\Pages\Page as FilamentPage;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Summary;
+use Illuminate\Support\Facades\Auth;
 
-
-class Pages extends Page
+class Pages extends FilamentPage
 {
     protected static bool $shouldRegisterNavigation = false;
 
     protected string $view = 'filament.pages.pages';
+    protected static ?string $slug = 'books/{book}/pages';
 
     public ?Book $book = null;
     public int $currentPage = 1;
     public int $perPage = 30;
     public string $searchPage = '';
+    public ?int $searchFrom = null;
+    public ?int $searchTo = null;
     public int $fromPage = 1;
     public int $toPage = 1;
     public string $summaryResult = '';
+    public ?int $processingPageId = null;
+    public array $selectedReadPrompts = [];
+    public string $selectedModel = 'gapgpt-qwen-3.5';
+
+    public array $selectedSummaryPrompts = [];
 
     public function mount(Book $book): void
     {
@@ -42,20 +51,40 @@ class Pages extends Page
             return;
         }
 
+        $defaultPrompt = '
+            متن موجود در این تصویر را با بالاترین دقت استخراج کن.
+            قوانین:
+            - فقط متن داخل تصویر را خروجی بده و هیچ توضیح اضافه‌ای ننویس.
+            - متن را به زبان اصلی تصویر (فارسی) حفظ کن.
+            - ترتیب خطوط، پاراگراف‌ها و ساختار متن را تا حد ممکن حفظ کن.
+            - اگر تیتر، جدول یا لیست وجود دارد، ساختار آن را حفظ کن.
+            - هیچ کلمه‌ای را خلاصه، اصلاح یا بازنویسی نکن.
+            - اگر بخشی از متن خوانا نیست، آن را با [نامشخص] مشخص کن.
+            - علائم نگارشی فارسی را حفظ کن.
+            - اعداد فارسی و انگلیسی را همان‌طور که در تصویر هستند نگه دار.
+            خروجی فقط متن استخراج‌شده باشد.
+        ';
+
+        $userPrompts = Prompt::whereIn('id', $this->selectedReadPrompts)
+            ->where('user_id', Auth::id())
+            ->where('type', 'read')
+            ->pluck('text')
+            ->implode("\n");
+
+        $finalPrompt = $userPrompts
+            ? $defaultPrompt . "\n" . $userPrompts
+            : $defaultPrompt;
+
         $image = Storage::disk('public')->get($page->image_path);
         $base64 = base64_encode($image);
 
         $response = Http::timeout(160)->withToken(env('GAPGPT_API_KEY'))
             ->post('https://api.gapgpt.app/v1/responses', [
-                'model' => 'gapgpt-qwen-3.5',
+                'model' => $this->selectedModel,
                 'input' => [
                     [
                         'role' => 'user',
                         'content' => [
-                            // [
-                            //     'type' => 'input_image',
-                            //     'image_url' => "data:image/jpeg;base64,{$base64}",
-                            // ],
                             [
                                 'type' => 'input_image',
                                 'image_url' => [
@@ -64,26 +93,12 @@ class Pages extends Page
                             ],
                             [
                                 'type' => 'input_text',
-                                'text' => '
-                                    متن موجود در این تصویر را با بالاترین دقت استخراج کن.
-                                    قوانین:
-                                    - فقط متن داخل تصویر را خروجی بده و هیچ توضیح اضافه‌ای ننویس.
-                                    - متن را به زبان اصلی تصویر (فارسی) حفظ کن.
-                                    - ترتیب خطوط، پاراگراف‌ها و ساختار متن را تا حد ممکن حفظ کن.
-                                    - اگر تیتر، جدول یا لیست وجود دارد، ساختار آن را حفظ کن.
-                                    - هیچ کلمه‌ای را خلاصه، اصلاح یا بازنویسی نکن.
-                                    - اگر بخشی از متن خوانا نیست، آن را با [نامشخص] مشخص کن.
-                                    - علائم نگارشی فارسی را حفظ کن.
-                                    - اعداد فارسی و انگلیسی را همان‌طور که در تصویر هستند نگه دار.
-                                    خروجی فقط متن استخراج‌شده باشد.
-                                ',
+                                'text' => $finalPrompt,
                             ],
                         ],
                     ],
                 ],
             ]);
-
-        // dd($response->json());
 
         $text = data_get($response->json(), 'output.0.content.0.text', '');
 
@@ -168,8 +183,9 @@ class Pages extends Page
     public function getFilteredPages()
     {
         return $this->book->pages
-            ->when($this->searchPage !== '', fn($pages) => $pages->where('page_number', (int) $this->searchPage))
-            ->forPage($this->currentPage, $this->perPage);
+            ->when($this->searchFrom, fn($pages) => $pages->where('page_number', '>=', $this->searchFrom))
+            ->when($this->searchTo, fn($pages) => $pages->where('page_number', '<=', $this->searchTo))
+            ->values();
     }
 
     public function getTotalPages(): int
@@ -221,7 +237,57 @@ class Pages extends Page
 
     public function getSummary(): void
     {
-        // منطق دریافت خلاصه اینجا
+        $this->validate([
+            'fromPage' => ['required', 'integer'],
+            'toPage'   => ['required', 'integer'],
+        ]);
+
+        $book = Book::findOrFail($this->summaryBookId);
+
+        $defaultPrompt = "
+            شما یک دستیار آموزشی هستید.
+
+            متن ورودی فقط شامل محتوای صفحات {$this->fromPage} تا {$this->toPage} کتاب است.
+
+            مهم:
+            - فقط اطلاعات موجود در همین صفحات را در نظر بگیر.
+            - از دانش عمومی یا اطلاعات خارج از این صفحات استفاده نکن.
+            - اگر پاسخ یا توضیحی در این صفحات وجود ندارد، آن را حدس نزن.
+            - به صفحات قبل یا بعد از این بازه ارجاع نده.
+
+            در قالب فارسی روان:
+            - نکات مهم را استخراج کن.
+            - مفاهیم کلیدی را توضیح بده.
+            - در پایان یک خلاصه کوتاه ارائه کن.
+            ";
+
+        $userPrompts = Prompt::whereIn('id', $this->selectedSummaryPrompts)
+            ->where('user_id', Auth::id())
+            ->where('type', 'summary')
+            ->pluck('text')
+            ->implode("\n");
+
+        $finalPrompt = $userPrompts
+            ? $defaultPrompt . "\n" . $userPrompts
+            : $defaultPrompt;
+
+        $response = Http::timeout(60)->post(
+            config('services.rag.url') . '/query/ask',
+            [
+                'book_id'    => $book->rag_book_id,
+                'question'   => $finalPrompt,
+                'max_chunks' => 5,
+            ]
+        );
+
+        $response->throw();
+
+        $this->summaryResult = $response->json('answer') ?? $response->json('result') ?? '';
+
+        Notification::make()
+            ->title('خلاصه دریافت شد.')
+            ->success()
+            ->send();
     }
 
     public function storeSummary(): void
@@ -247,5 +313,27 @@ class Pages extends Page
             ->title('خلاصه ذخیره شد')
             ->success()
             ->send();
+    }
+
+    public function getReadPrompts()
+    {
+        return Prompt::where('user_id', Auth::id())
+            ->where('type', 'read')
+            ->get();
+    }
+
+    public function openProcessModal(int $pageId): void
+    {
+        $this->processingPageId = $pageId;
+        $this->selectedReadPrompts = [];
+        $this->selectedModel = 'gapgpt-qwen-3.5';
+        $this->dispatch('open-modal', id: 'page-modal-' . $pageId);
+    }
+
+    public function getSummaryPrompts()
+    {
+        return Prompt::where('user_id', Auth::id())
+            ->where('type', 'summary')
+            ->get();
     }
 }

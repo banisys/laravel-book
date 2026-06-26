@@ -5,18 +5,18 @@
       <div class="grid grid-cols-12 gap-4">
 
         <div class="col-span-4">
-          <x-filament::input.wrapper label="عنوان کتاب" :valid="!$errors->has('title')" required>
-            <x-filament::input type="text" wire:model="bookTitle" placeholder="عنوان کتاب را وارد کنید" required
+          <x-filament::input.wrapper label="عنوان کتاب" :valid="!$errors->has('title')">
+            <x-filament::input type="text" wire:model="bookTitle" placeholder="عنوان کتاب را وارد کنید"
               maxlength="255" />
           </x-filament::input.wrapper>
-          @error('title')
+          @error('bookTitle')
             <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
           @enderror
         </div>
 
         <div class="col-span-4">
-          <x-filament::input.wrapper label="فایل PDF" required>
-            <x-filament::input type="file" wire:model="pdf" accept="application/pdf" required />
+          <x-filament::input.wrapper label="فایل PDF">
+            <x-filament::input type="file" wire:model="pdf" accept="application/pdf" />
           </x-filament::input.wrapper>
           @error('pdf')
             <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
@@ -25,7 +25,7 @@
 
         <div class="col-span-2">
           <x-filament::button type="submit" icon="heroicon-o-check" icon-position="before" wire:loading.attr="disabled"
-            wire:target="store" class="text-white font-bold [&_svg]:text-white">
+            wire:target="store">
             <span wire:loading.remove wire:target="store">ذخیره</span>
             <span wire:loading wire:target="store">در حال ذخیره...</span>
           </x-filament::button>
@@ -66,10 +66,10 @@
                     color="primary" size="sm">
                     فایل PDF
                   </x-filament::button>
-                  
 
-                  <x-filament::button size="sm" color="success" tag="a"
-                    href="{{ route('books.pages', ['book' => $book->id]) }}">
+
+                  <x-filament::button size="sm" color="success" tag="a" wire:navigate
+                    href="{{ route('filament.admin.pages.books.{book}.pages', ['book' => $book->id]) }}">
                     لیست صفحات
                   </x-filament::button>
 
@@ -82,7 +82,7 @@
                     <div x-show="openDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto"
                       style="display: none;">
 
-                      <div class="fixed inset-0 bg-black/20 transition-opacity" x-on:click="openDeleteModal = false">
+                      <div class="fixed inset-0 bg-black/10 transition-opacity" x-on:click="openDeleteModal = false">
                       </div>
 
                       <div class="flex min-h-full items-center justify-center p-4">

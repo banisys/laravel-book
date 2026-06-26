@@ -13,7 +13,6 @@ use BackedEnum;
 
 class Books extends FilamentPage
 {
-
     public ?array $data = [];
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
@@ -107,8 +106,6 @@ class Books extends FilamentPage
             ->body('کتاب با موفقیت ذخیره شد.')
             ->success()
             ->send();
-
-        $this->redirect($this->getUrl());
     }
 
     public function getBooks()
@@ -134,5 +131,4 @@ class Books extends FilamentPage
             ->success()
             ->send();
     }
-
 }
