@@ -14,23 +14,21 @@ use Illuminate\Support\Facades\Auth;
 class Pages extends FilamentPage
 {
     protected static bool $shouldRegisterNavigation = false;
-
     protected string $view = 'filament.pages.pages';
     protected static ?string $slug = 'books/{book}/pages';
 
     public ?Book $book = null;
-    public int $currentPage = 1;
-    public int $perPage = 30;
     public string $searchPage = '';
     public ?int $searchFrom = null;
     public ?int $searchTo = null;
+    public int $currentPage = 1;
+    public int $perPage = 20;
     public int $fromPage = 1;
     public int $toPage = 1;
     public string $summaryResult = '';
     public ?int $processingPageId = null;
     public array $selectedReadPrompts = [];
-    public string $selectedModel = 'gapgpt-qwen-3.5';
-
+    public string $selectedModel = 'gpt-5.2';
     public array $selectedSummaryPrompts = [];
 
     public function mount(Book $book): void
@@ -40,7 +38,7 @@ class Pages extends FilamentPage
 
     public function getTitle(): string
     {
-        return $this->book ? "صفحات کتاب: {$this->book->title}" : 'صفحات کتاب';
+        return $this->book ? "{$this->book->title}" : 'صفحات کتاب';
     }
 
     public function processPage(int $pageId): void
@@ -78,6 +76,21 @@ class Pages extends FilamentPage
         $image = Storage::disk('public')->get($page->image_path);
         $base64 = base64_encode($image);
 
+
+        if ($this->selectedModel === 'gpt-5.2') {
+            $template = [
+                'type' => 'input_image',
+                'image_url' => "data:image/jpeg;base64,{$base64}",
+            ];
+        } else {
+            $template = [
+                'type' => 'input_image',
+                'image_url' => [
+                    'url' => "data:image/jpeg;base64,{$base64}",
+                ],
+            ];
+        }
+
         $response = Http::timeout(160)->withToken(env('GAPGPT_API_KEY'))
             ->post('https://api.gapgpt.app/v1/responses', [
                 'model' => $this->selectedModel,
@@ -85,12 +98,7 @@ class Pages extends FilamentPage
                     [
                         'role' => 'user',
                         'content' => [
-                            [
-                                'type' => 'input_image',
-                                'image_url' => [
-                                    'url' => "data:image/jpeg;base64,{$base64}",
-                                ],
-                            ],
+                            $template,
                             [
                                 'type' => 'input_text',
                                 'text' => $finalPrompt,
@@ -180,41 +188,6 @@ class Pages extends FilamentPage
             ->send();
     }
 
-    public function getFilteredPages()
-    {
-        return $this->book->pages
-            ->when($this->searchFrom, fn($pages) => $pages->where('page_number', '>=', $this->searchFrom))
-            ->when($this->searchTo, fn($pages) => $pages->where('page_number', '<=', $this->searchTo))
-            ->values();
-    }
-
-    public function getTotalPages(): int
-    {
-        return (int) ceil(
-            $this->book->pages
-                ->when($this->searchPage !== '', fn($pages) => $pages->where('page_number', (int) $this->searchPage))
-                ->count() / $this->perPage
-        );
-    }
-
-    public function nextPage(): void
-    {
-        if ($this->currentPage < $this->getTotalPages()) {
-            $this->currentPage++;
-        }
-    }
-
-    public function previousPage(): void
-    {
-        if ($this->currentPage > 1) {
-            $this->currentPage--;
-        }
-    }
-
-    public function goToPage(int $page): void
-    {
-        $this->currentPage = $page;
-    }
 
     public function updatedSearchPage(): void
     {
@@ -242,7 +215,7 @@ class Pages extends FilamentPage
             'toPage'   => ['required', 'integer'],
         ]);
 
-        $book = Book::findOrFail($this->summaryBookId);
+        $book = Book::findOrFail($this->book->id);
 
         $defaultPrompt = "
             شما یک دستیار آموزشی هستید.
@@ -326,7 +299,6 @@ class Pages extends FilamentPage
     {
         $this->processingPageId = $pageId;
         $this->selectedReadPrompts = [];
-        $this->selectedModel = 'gapgpt-qwen-3.5';
         $this->dispatch('open-modal', id: 'page-modal-' . $pageId);
     }
 
@@ -335,5 +307,53 @@ class Pages extends FilamentPage
         return Prompt::where('user_id', Auth::id())
             ->where('type', 'summary')
             ->get();
+    }
+
+    public function getFilteredPages()
+    {
+        return $this->book->pages
+            ->when($this->searchFrom, fn($pages) => $pages->where('page_number', '>=', $this->searchFrom))
+            ->when($this->searchTo, fn($pages) => $pages->where('page_number', '<=', $this->searchTo))
+            ->values();
+    }
+
+    public function getPaginatedPages()
+    {
+        return $this->getFilteredPages()
+            ->forPage($this->currentPage, $this->perPage);
+    }
+
+    public function getTotalPages(): int
+    {
+        return (int) ceil($this->getFilteredPages()->count() / $this->perPage);
+    }
+
+    public function nextPage(): void
+    {
+        if ($this->currentPage < $this->getTotalPages()) {
+            $this->currentPage++;
+        }
+    }
+
+    public function previousPage(): void
+    {
+        if ($this->currentPage > 1) {
+            $this->currentPage--;
+        }
+    }
+
+    public function goToPage(int $page): void
+    {
+        $this->currentPage = $page;
+    }
+
+    public function updatedSearchFrom(): void
+    {
+        $this->currentPage = 1;
+    }
+
+    public function updatedSearchTo(): void
+    {
+        $this->currentPage = 1;
     }
 }

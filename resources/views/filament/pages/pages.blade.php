@@ -2,7 +2,6 @@
 
   <div class="grid grid-cols-6 gap-4">
 
-    {{-- کل صفحات --}}
     <div
       class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex items-center gap-3">
       <div class="rounded-full bg-blue-100 dark:bg-blue-400/10 p-2.5">
@@ -14,7 +13,6 @@
       </div>
     </div>
 
-    {{-- دارای متن --}}
     <div
       class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex items-center gap-3">
       <div class="rounded-full bg-emerald-100 dark:bg-emerald-400/10 p-2.5">
@@ -28,7 +26,6 @@
       </div>
     </div>
 
-    {{-- افزوده شده به RAG --}}
     <div
       class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex items-center gap-3">
       <div class="rounded-full bg-violet-100 dark:bg-violet-400/10 p-2.5">
@@ -44,7 +41,6 @@
 
     <div></div>
 
-    {{-- خلاصه --}}
     <div
       class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex flex-col justify-between gap-2">
       <div class="flex items-center gap-2 mb-1">
@@ -62,7 +58,6 @@
       </div>
     </div>
 
-    {{-- آزمون --}}
     <div
       class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex flex-col justify-between gap-2">
       <div class="flex items-center gap-2 mb-1">
@@ -80,7 +75,6 @@
       </div>
     </div>
 
-    {{-- جستجو --}}
     <div class="col-span-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
       <div class="flex items-center gap-2 mb-2">
         <x-heroicon-o-funnel class="w-4 h-4 text-gray-500 dark:text-gray-400" />
@@ -99,15 +93,13 @@
       </div>
     </div>
 
-
-
   </div>
 
   <x-filament::section>
     <div class="overflow-x-auto">
       <table class="w-full text-right text-sm">
         <tbody>
-          @forelse($this->getFilteredPages() as $page)
+          @forelse($this->getPaginatedPages() as $page)
             <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
 
               <td class="px-3 py-2 w-12 text-gray-500 dark:text-gray-400">
@@ -233,8 +225,7 @@
                         <x-filament::input.select wire:model="selectedModel"
                           class="[direction:rtl] bg-[left_0.75rem_center] pr-3 pl-10">
                           <option value="gapgpt-qwen-3.5">GapGPT Qwen 3.5</option>
-                          <option value="gapgpt-4o">GapGPT 4o</option>
-                          <option value="gapgpt-4o-mini">GapGPT 4o Mini</option>
+                          <option value="gpt-5.2">gpt-5.2</option>
                         </x-filament::input.select>
                       </x-filament::input.wrapper>
                     </div>
@@ -247,9 +238,9 @@
 
                   </div>
 
-                  <div class="flex flex-col gap-2 flex-1">
-                    <textarea id="modal-content-{{ $page->id }}" rows="20"
-                      class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 text-sm resize-y flex-1">{{ $page->content }}</textarea>
+                  <div class="flex flex-col gap-2">
+                    <textarea id="modal-content-{{ $page->id }}" rows="32"
+                      class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 text-sm resize-y">{{ $page->content }}</textarea>
 
                     <x-filament::button size="sm" color="success" x-data
                       x-on:click="$wire.updateContent({{ $page->id }}, document.getElementById('modal-content-{{ $page->id }}').value)">
@@ -271,30 +262,26 @@
       </table>
     </div>
 
-    {{-- Pagination --}}
     @if ($this->getTotalPages() > 1)
       <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-
         <p class="text-sm text-gray-500 dark:text-gray-400">
           صفحه {{ $currentPage }} از {{ $this->getTotalPages() }}
         </p>
-
         <div class="flex items-center gap-1">
-
           <x-filament::icon-button icon="heroicon-o-chevron-right" size="sm" color="gray"
-            wire:click="previousPage" :disabled="$currentPage === 1" />
+            wire:click="previousPage" x-on:click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+            :disabled="$currentPage === 1" />
 
           @for ($i = 1; $i <= $this->getTotalPages(); $i++)
-            <x-filament::button size="sm" :color="$currentPage === $i ? 'primary' : 'gray'" wire:click="goToPage({{ $i }})">
+            <x-filament::button size="sm" :color="$currentPage === $i ? 'primary' : 'gray'" wire:click="goToPage({{ $i }})"
+              x-on:click="window.scrollTo({ top: 350, behavior: 'smooth' })">
               {{ $i }}
             </x-filament::button>
           @endfor
 
           <x-filament::icon-button icon="heroicon-o-chevron-left" size="sm" color="gray"
-            wire:click="nextPage" :disabled="$currentPage === $this->getTotalPages()" />
-
+            wire:click="nextPage" x-on:click="window.scrollTo({ top: 0, behavior: 'smooth' })" :disabled="$currentPage === $this->getTotalPages()" />
         </div>
-
       </div>
     @endif
 

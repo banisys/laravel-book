@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Spatie\PdfToImage\Pdf;
 use Illuminate\Support\Facades\Storage;
 use BackedEnum;
+use Illuminate\Support\Facades\Auth;
 
 class Books extends FilamentPage
 {
@@ -32,6 +33,14 @@ class Books extends FilamentPage
 
     public bool $openDeleteModal = false;
     public ?int $bookIdToDelete = null;
+
+    public int $currentPage = 1;
+    public int $perPage = 30;
+    public string $searchPage = '';
+    public ?int $searchFrom = null;
+    public ?int $searchTo = null;
+    public int $fromPage = 1;
+    public int $toPage = 1;
 
 
     public function store(): void
@@ -108,15 +117,16 @@ class Books extends FilamentPage
             ->send();
     }
 
-    public function getBooks()
-    {
-        $books = Book::latest()->get();
-        return $books;
-    }
-
     public function deleteBook(int $id): void
     {
-        $book = Book::find($id);
+        if (!Auth::user()->hasRole('admin')) {
+            Notification::make()
+                ->title('شما مجاز به حذف کتاب نیستید.')
+                ->danger()
+                ->send();
+            return;
+        }
+        $book = Book::findOrFail($id);
 
         Storage::disk('public')->deleteDirectory(
             "books/{$book->id}"
@@ -130,5 +140,53 @@ class Books extends FilamentPage
             ->title('حذف شد')
             ->success()
             ->send();
+    }
+
+    public function nextPage(): void
+    {
+        if ($this->currentPage < $this->getTotalPages()) {
+            $this->currentPage++;
+        }
+    }
+
+    public function previousPage(): void
+    {
+        if ($this->currentPage > 1) {
+            $this->currentPage--;
+        }
+    }
+
+    public function goToPage(int $page): void
+    {
+        $this->currentPage = $page;
+    }
+
+    public function updatedSearchPage(): void
+    {
+        $this->currentPage = 1;
+    }
+
+    private function getBooksQuery()
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('teacher')) {
+            return $user->books()->getQuery()->orderBy('books.id');
+        }
+
+        return Book::query()->orderBy('books.id');
+    }
+
+    public function getBooks()
+    {
+        return $this->getBooksQuery()
+            ->paginate($this->perPage, ['*'], 'page', $this->currentPage);
+    }
+
+    public function getTotalPages(): int
+    {
+        return (int) ceil(
+            $this->getBooksQuery()->count() / $this->perPage
+        );
     }
 }

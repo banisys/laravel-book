@@ -4,7 +4,7 @@
     <form wire:submit="store">
       <div class="grid grid-cols-12 gap-4">
 
-        <div class="col-span-4">
+        <div class="col-span-7">
           <x-filament::input.wrapper label="عنوان کتاب" :valid="!$errors->has('title')">
             <x-filament::input type="text" wire:model="bookTitle" placeholder="عنوان کتاب را وارد کنید"
               maxlength="255" />
@@ -14,7 +14,7 @@
           @enderror
         </div>
 
-        <div class="col-span-4">
+        <div class="col-span-3">
           <x-filament::input.wrapper label="فایل PDF">
             <x-filament::input type="file" wire:model="pdf" accept="application/pdf" />
           </x-filament::input.wrapper>
@@ -46,36 +46,33 @@
     </div>
 
     <div class="overflow-x-auto">
-
       <table class="table-fixed text-right text-sm w-full">
 
         <tbody>
-          @forelse($this->getBooks() as $book)
+          @php $books = $this->getBooks(); @endphp
+
+          @forelse($books as $book)
             <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
 
-              <td class="px-3 py-1.5 text-gray-700 dark:text-gray-300">{{ $book->id }}</td>
+              <td class="px-3 py-4 text-gray-700 dark:text-gray-300 py-3 w-5">{{ $book->id }}</td>
 
-              <td class="px-3 py-1.5 break-words">
+              <td class="px-3 py-4 break-words w-75">
                 {{ $book->title }}
               </td>
 
-
-              <td class="px-3 py-1.5">
+              <td class="px-3 py-4 w-20">
                 <div class="flex items-center gap-3 justify-end">
-                  <x-filament::button tag="a" href="{{ Storage::url($book->pdf_path) }}" target="_blank"
-                    color="primary" size="sm">
-                    فایل PDF
-                  </x-filament::button>
 
-
-                  <x-filament::button size="sm" color="success" tag="a" wire:navigate
-                    href="{{ route('filament.admin.pages.books.{book}.pages', ['book' => $book->id]) }}">
-                    لیست صفحات
-                  </x-filament::button>
+                  <x-filament::icon-button icon="heroicon-o-list-bullet" tag="a" wire:navigate
+                    href="{{ route('filament.admin.pages.books.{book}.pages', ['book' => $book->id]) }}"
+                    tooltip="لیست صفحات" class="bg-success-600 hover:bg-success-700 [&_svg]:text-white ml-1" />
+                  <x-filament::icon-button icon="heroicon-o-document" tag="a"
+                    href="{{ Storage::url($book->pdf_path) }}" target="_blank" tooltip="فایل PDF"
+                    class="bg-primary-600 hover:bg-primary-700 [&_svg]:text-white ml-1" />
 
 
                   <div x-data="{ openDeleteModal: @entangle('openDeleteModal').live, bookIdToDelete: @entangle('bookIdToDelete') }">
-                    <x-filament::icon-button icon="heroicon-o-trash" size="sm" tooltip="حذف"
+                    <x-filament::icon-button icon="heroicon-o-trash" tooltip="حذف"
                       class="bg-red-600 hover:bg-red-700 [&_svg]:text-white"
                       x-on:click="bookIdToDelete = {{ $book->id }}; openDeleteModal = true" />
 
@@ -116,7 +113,6 @@
 
                 </div>
               </td>
-
             </tr>
           @empty
             <tr>
@@ -127,7 +123,35 @@
           @endforelse
         </tbody>
       </table>
+
+
     </div>
+
+    @if ($this->getTotalPages() > 1)
+      <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          صفحه {{ $currentPage }} از {{ $this->getTotalPages() }}
+        </p>
+
+        <div class="flex items-center gap-1">
+
+          <x-filament::icon-button icon="heroicon-o-chevron-right" size="sm" color="gray"
+            wire:click="previousPage" :disabled="$currentPage === 1" />
+
+          @for ($i = 1; $i <= $this->getTotalPages(); $i++)
+            <x-filament::button size="sm" :color="$currentPage === $i ? 'primary' : 'gray'" wire:click="goToPage({{ $i }})">
+              {{ $i }}
+            </x-filament::button>
+          @endfor
+
+          <x-filament::icon-button icon="heroicon-o-chevron-left" size="sm" color="gray" wire:click="nextPage"
+            :disabled="$currentPage === $this->getTotalPages()" />
+
+        </div>
+
+      </div>
+    @endif
 
   </x-filament::section>
 
